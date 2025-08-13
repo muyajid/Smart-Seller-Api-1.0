@@ -1,8 +1,12 @@
-import prisma from "../application/prisma-client.js";
+import prisma from "../application/prisma-client-app.js";
 import argon2 from "argon2";
-import logger from "../application/looger.js";
-import hash256 from "../utilty/sha-256.js";
-import sendMail from "../application/mailer.js";
+import logger from "../application/looger-app.js";
+import hash256 from "../utilty/sha-256-utilty.js";
+import sendMail from "../application/mailer-app.js";
+import JWT from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function register(req, res) {
   try {
@@ -101,13 +105,21 @@ async function login(req, res) {
       });
     }
 
+    const payload = { id: findAccount.id, username: findAccount.username, email: findAccount.email };
+    const secretKey = process.env.JWT_SECRET;
+
+    const jwtToken = JWT.sign(payload, secretKey, {expiresIn: '1h'});
+    logger.info(`JWT sign proces done: ${jwtToken}`);
+    
     res.status(200).json({
       message: `Succesfully login, username and password is correct`,
       data: {
         id: findAccount.id,
         username: findAccount.username,
+        token: jwtToken,
       },
     });
+
   } catch (err) {
     logger.error(err.message);
     res.status(500).json({
