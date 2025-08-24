@@ -47,11 +47,13 @@ model Product {
 }
 
 model ProductKategori {
-  id             Int      @id @default(autoincrement())
-  produkId       String   @db.Char(36)
-  kategoriProduk String   @db.VarChar(50)
-  kategoriData   String   @db.VarChar(50)
-  createdAt      DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  produkId     String   @db.Char(36)
+  atribut      String   @db.VarChar(20)
+  value        String   @db.VarChar(20)
+  stok         Int      @db.Int
+  harga        Float    @db.Float
+  createdAt    DateTime @default(now())
 
   product Product @relation(fields: [produkId], references: [id])
 }
