@@ -8,6 +8,10 @@ dotenv.config();
 const apps = express();
 const PORT = process.env.PORT;
 
+apps.get("/", (req, res) => {
+    res.send("Hello World");
+});
+
 apps.use(publicRouter);
 apps.use(privateRouter);
 apps.use(erorHandling);

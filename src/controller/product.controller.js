@@ -1,20 +1,17 @@
-import { addProduct } from "../service/product.service.js"
-async function controlAddProduct(req, res, next) {
-    try {
-        const product = await addProduct(req);
+import { addProduct } from "../service/product.service.js";
 
+async function addProductController(req, res, next) {
+    try {
+        const results = await addProduct(req);
         res.status(200).json({
-            message: "Product added successfully",
-            data: {
-                product: product,
-            }
+            message: `Product added succesfully`,
+            data: results.data
         });
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 }
 
-
 export {
-    controlAddProduct,
+    addProductController,
 }

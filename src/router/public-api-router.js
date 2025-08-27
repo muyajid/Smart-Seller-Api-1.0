@@ -17,7 +17,7 @@ publicRouter.post(
   forgotPasswordController
 );
 publicRouter.get("/api/v1/auth/verify-token", verifyTokenController);
-publicRouter.post(
+publicRouter.put(
   "/api/v1/auth/reset-password",
   express.json(),
   resetPasswordController

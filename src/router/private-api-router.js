@@ -1,8 +1,7 @@
 import express from "express";
-import { controlAddProduct } from "../controller/product.controller.js";
-
+import { addProductController } from "../controller/product.controller.js";
 const privateRouter = express.Router();
 
-privateRouter.post("/api/v1/product/add", express.json(), controlAddProduct);
+privateRouter.post("/api/v1/product/add", express.json(), addProductController);
 
 export default privateRouter;
