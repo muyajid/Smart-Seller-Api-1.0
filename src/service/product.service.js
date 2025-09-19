@@ -2,7 +2,7 @@ import logger from "../application/looger-app.js";
 import prisma from "../application/prisma-client-app.js";
 import ResponseEror from "../eror/response-eror.js";
 import path from "path";
-import fs from "fs";
+import fs, { existsSync } from "fs";
 import crypto from "crypto";
 
 async function addProduct(req) {
@@ -19,12 +19,14 @@ async function addProduct(req) {
   const priceToFloat = parseFloat(price);
   const stockToInt = parseInt(stock);
 
+  if (isNaN(priceToFloat) || isNaN(stockToInt)) {
+    logger.warn("Proces failed price adn stok must be number");
+    throw new ResponseEror("Price and stock must be number", 400);
+  }
+
   if (priceToFloat <= 1000 || stockToInt <= 0) {
-    logger.warn(
-      "Proces failed price cannot be 1000 and stock cannot be 0",
-      400
-    );
-    throw new ResponseEror("Price cannot be 1000 and stock cannot be 0");
+    logger.warn("Proces failed price cannot be 1000 and stock cannot be 0");
+    throw new ResponseEror("Price cannot be 1000 and stock cannot be 0", 400);
   }
 
   const createNewProduct = await prisma.product.create({
@@ -51,10 +53,18 @@ async function addProduct(req) {
   }
   const imagesUrlData = [];
 
+  const folderLocation = path.join(process.cwd(), "images");
+  if (!existsSync(folderLocation)) {
+    fs.mkdirSync(folderLocation, { recursive: true });
+    logger.info(`Images folder succesfullt created`);
+  }
+
   for (const images of imagesData) {
     const randomCharacter = crypto.randomBytes(5).toString("hex");
     const ext = path.extname(images.originalname);
-    const modifiedImagesName = `${randomCharacter}-${Date.now().toString()}${ext}`;
+    const modifiedImagesName = `${randomCharacter}-${Date.now()}${ext}`;
+
+    const imageLocation = path.join(folderLocation, modifiedImagesName);
 
     const imageUrl = `${req.protocol}://${req.get(
       "host"
@@ -67,14 +77,9 @@ async function addProduct(req) {
       },
     });
 
-    imagesUrlData.push(imageUrl);
+    await fs.promises.writeFile(imageLocation, images.buffer);
 
-    const imageLocation = path.join(
-      process.cwd(),
-      "images",
-      modifiedImagesName
-    );
-    fs.writeFileSync(imageLocation, images.buffer);
+    imagesUrlData.push(imageUrl);
   }
   logger.info("Succesfully add product images data: " + imagesUrlData);
 
