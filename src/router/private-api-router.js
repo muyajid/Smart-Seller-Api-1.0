@@ -4,4 +4,5 @@ import { addProductController } from "../controller/product.controller.js";
 const privateRouter = express.Router();
 
 privateRouter.post("/api/v1/product/add", upload.array("image", 5), addProductController);
+privateRouter.use("/images", express.static("images"));
 export default privateRouter;

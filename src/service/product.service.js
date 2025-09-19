@@ -3,6 +3,7 @@ import prisma from "../application/prisma-client-app.js";
 import ResponseEror from "../eror/response-eror.js";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 
 async function addProduct(req) {
   logger.info("Proces started /api/v1/product/add");
@@ -51,8 +52,9 @@ async function addProduct(req) {
   const imagesUrlData = [];
 
   for (const images of imagesData) {
-    const modifiedImagesName =
-      Date.now().toString() + "-" + images.originalname;
+    const randomCharacter = crypto.randomBytes(5).toString("hex");
+    const ext = path.extname(images.originalname);
+    const modifiedImagesName = `${randomCharacter}-${Date.now().toString()}${ext}`;
 
     const imageUrl = `${req.protocol}://${req.get(
       "host"
@@ -82,6 +84,4 @@ async function addProduct(req) {
   };
 }
 
-export {
-    addProduct,
-};
+export { addProduct };
