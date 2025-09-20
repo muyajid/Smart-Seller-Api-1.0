@@ -92,16 +92,31 @@ async function addProduct(req) {
 async function getProduct(req) {
   logger.info("Proces started /api/v1/product");
 
-  const selectProduct = await prisma.product.findMany({
-    include: {Images: true,}
-  });
+  const productName = req.query.productName;
+  let selectProduct;
+  if (productName) {
+    selectProduct = await prisma.product.findFirst({
+      where: {
+        productName: {
+          contains: productName,
+        },
+      },
+      include: { Images: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } else {
+    selectProduct = await prisma.product.findMany({
+      include: { Images: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
-  if (selectProduct.length <= 0) {
+  if (!selectProduct) {
     logger.warn("Proces failed empty product data");
-    throw new ResponseEror("Product data is empty", 404);
-  };
+    throw new ResponseEror("Product not found", 404);
+  }
 
-  logger.info(`Succesfully get data: ${selectProduct.length}`);
+  logger.info(`Succesfully get data: ${JSON.stringify(selectProduct)}`);
 
   return selectProduct;
 }
