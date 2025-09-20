@@ -1,4 +1,8 @@
-import { addProduct, getProduct } from "../service/product.service.js";
+import {
+  addProduct,
+  deleteProduct,
+  getProduct,
+} from "../service/product.service.js";
 
 async function addProductController(req, res, next) {
   try {
@@ -38,4 +42,17 @@ async function getProductController(req, res, next) {
   }
 }
 
-export { addProductController, getProductController };
+async function deleteProductController(req, res, next) {
+  try {
+    const results = await deleteProduct(req);
+
+    res.status(200).json({
+      message: "Succesfully remove product",
+      data: results,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { addProductController, getProductController, deleteProductController };

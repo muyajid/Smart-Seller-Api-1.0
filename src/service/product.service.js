@@ -121,4 +121,39 @@ async function getProduct(req) {
   return selectProduct;
 }
 
-export { addProduct, getProduct };
+async function deleteProduct(req) {
+
+  logger.info("Proces started api/v1/product/delete");
+  const productId = req.query.id;
+
+  if (!productId) {
+    logger.warn("Proces failed missing required query param");
+    throw new ResponseEror("Missing required query param", 400);
+  };
+
+  const findProduct = await prisma.product.findFirst({
+    where: {id: productId},
+    include: {Images: true}
+  });
+
+  if (!findProduct) {
+    logger.warn("Proces failed product not found");
+    throw new ResponseEror("Product Not Found", 404);
+  };
+
+    const remove = await prisma.product.delete({
+    where: {id: productId},
+    include: {Images: true},
+  });
+
+  for (const images of remove.Images) {
+    const fileName = path.basename(images.imageUrl);
+    const filePath = path.join(path.join(process.cwd(), "images"), fileName);
+
+    await fs.promises.unlink(filePath);
+  }
+
+  logger.info(`Product removed succesfully productId: ${remove.id}`);
+  return remove;
+}
+export { addProduct, getProduct, deleteProduct };
