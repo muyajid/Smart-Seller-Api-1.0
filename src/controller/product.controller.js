@@ -1,11 +1,11 @@
-import { addProduct } from "../service/product.service.js";
+import { addProduct, getProduct } from "../service/product.service.js";
 
 async function addProductController(req, res, next) {
   try {
     const results = await addProduct(req);
 
     res.status(200).json({
-      message: "Succesfullt add product",
+      message: "Succesfully add product",
       data: {
         id: results.productData.id,
         productName: results.productData.productName,
@@ -22,8 +22,20 @@ async function addProductController(req, res, next) {
   } catch (err) {
     next(err);
   }
-};
-
-export {
-    addProductController,
 }
+
+async function getProductController(req, res, next) {
+  try {
+    const results = await getProduct(req);
+
+    res.status(200).json({
+      message: "Succesfully get data",
+      data: results,
+      total: results.length,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { addProductController, getProductController };
