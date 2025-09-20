@@ -89,4 +89,21 @@ async function addProduct(req) {
   };
 }
 
-export { addProduct };
+async function getProduct(req) {
+  logger.info("Proces started /api/v1/product");
+
+  const selectProduct = await prisma.product.findMany({
+    include: {Images: true,}
+  });
+
+  if (selectProduct.length <= 0) {
+    logger.warn("Proces failed empty product data");
+    throw new ResponseEror("Product data is empty", 404);
+  };
+
+  logger.info(`Succesfully get data: ${selectProduct.length}`);
+
+  return selectProduct;
+}
+
+export { addProduct, getProduct };
