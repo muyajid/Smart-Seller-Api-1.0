@@ -23,6 +23,6 @@ route.get("/api/v1/product", jwtAuth, getProductController);
 
 route.delete("/api/v1/product/", deleteProductController);
 // under develop
-route.patch("/api/v1/product/", patchProductController);
+route.patch("/api/v1/product", upload.array("image", 5), patchProductController);
 
 export default route;
