@@ -1,10 +1,8 @@
-import {
-  forgotPassword,
-  login,
-  register,
-  resetPassword,
-  verifyToken,
-} from "../service/user.service.js";
+import forgotPassword from "../service/user/forgotpassword.service.js";
+import login from "../service/user/login.service.js";
+import register from "../service/user/register.service.js";
+import resetPassword from "../service/user/resetpassword.service.js";
+import verifyToken from "../service/user/verifytoken.service.js";
 
 async function registerController(req, res, next) {
   try {
