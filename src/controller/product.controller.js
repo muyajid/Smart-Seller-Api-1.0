@@ -1,8 +1,7 @@
-import {
-  addProduct,
-  deleteProduct,
-  getProduct,
-} from "../service/product.service.js";
+import addProduct from "../service/product/addproduct.service.js";
+import deleteProduct from "../service/product/deleteproduct.service.js";
+import getProduct from "../service/product/getproduct.service.js";
+import patchProduct from "../service/product/patchproduct.service.js";
 
 async function addProductController(req, res, next) {
   try {
@@ -10,18 +9,7 @@ async function addProductController(req, res, next) {
 
     res.status(200).json({
       message: "Succesfully add product",
-      data: {
-        id: results.productData.id,
-        productName: results.productData.productName,
-        description: results.productData.description,
-        price: results.productData.price,
-        stock: results.productData.stock,
-        brand: results.productData.brand,
-        kategori: results.productData.kategori,
-        sku: results.productData.sku,
-        createdAt: results.productData.createdAt,
-        image: results.image,
-      },
+      data: results,
     });
   } catch (err) {
     next(err);
@@ -55,4 +43,21 @@ async function deleteProductController(req, res, next) {
   }
 }
 
-export { addProductController, getProductController, deleteProductController };
+async function patchProductController(req, res, next) {
+  try {
+    const results = await patchProduct(req);
+
+    res.status(200).json({
+      message: "Succesfully patch product",
+      data: results,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+export {
+  addProductController,
+  getProductController,
+  deleteProductController,
+  patchProductController,
+}
