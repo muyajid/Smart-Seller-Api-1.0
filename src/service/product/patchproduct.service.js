@@ -1,14 +1,16 @@
 import logger from "../../application/looger-app.js";
 import prisma from "../../application/prisma-client-app.js";
 import ResponseEror from "../../eror/response-eror.js";
-import urlGenerator from "../../utility/url-generator-utility.js";
 import path from "path";
 import fs from "fs";
+import urlGenerator from "../../utility/url-generator-utility.js";
 
 async function patchProduct(req) {
-  logger.info("Proces started /api/v1/product/patch");
+  logger.info("Proces started PATCH: /api/v1/product");
 
   const productId = req.query.productId;
+
+  if (!productId) throw new ResponseEror("Missing required query param", 400);
 
   const findProduct = await prisma.product.findFirst({
     where: {
@@ -21,66 +23,67 @@ async function patchProduct(req) {
 
   if (!findProduct) {
     logger.warn("Proces failed product not found");
-    throw new ResponseEror("Product not found", 404);
+    throw new ResponseEror("Product Not Found", 404);
   }
-
-  logger.info(`Product Found In Database : ${findProduct}`);
+  logger.info(`Product found product name: ${findProduct.productName}`);
 
   const body = { ...req.body };
-  logger.info(`Body data: ${JSON.stringify(body)}`);
+  logger.info(`Body Request Data: ${JSON.stringify(body)})}`)
 
   if (
-    body.productName &&
+    body.productName != undefined &&
     (body.productName === "" || body.productName === null)
   ) {
-    logger.warn("Proces failed productName cannot be empty or null");
-    throw new ResponseEror("productName cannot be empty or null", 400);
+    logger.warn("Proces failed product name cannot be empty or null");
+    throw new ResponseEror("Product name cannot be empty or null", 400);
   }
 
-  if (body.price) {
+  if (body.price != undefined) {
     const priceToFloat = parseFloat(body.price);
 
     if (isNaN(priceToFloat) || priceToFloat <= 1000) {
       logger.warn(
-        "Proces failed price cannot be <= 1000 and price must be number"
+        "Proces failed price cannot be less than 1000 and price must be number"
       );
       throw new ResponseEror(
-        "price cannot be <= 1000 and price must be number",
+        "Price cannot be le less than 1000 and price must be number",
         400
       );
     }
     body.price = priceToFloat;
   }
 
-  if (body.stock) {
+  if (body.stock != undefined) {
     const stockToInt = parseInt(body.stock);
 
     if (isNaN(stockToInt) || stockToInt <= 0) {
       logger.warn(
-        "Proces failed stock cannot be <= 0 and stock must be number"
+        "Proces failed stock cannot be empty and stock must be number"
       );
-      throw new ResponseEror("stock cannot be <= 0 an stock mu be number", 400);
+      throw new ResponseEror(
+        "Stock cannot be empty and stock must be number",
+        400
+      );
     }
     body.stock = stockToInt;
   }
 
-  if (req.files) {
-    logger.info("Client request update image");
+  if (req.files && req.files.length !== 0) {
+    logger.info(`Image update detected image length ${req.files.length}`);
 
-    if (req.files.length <= 0) {
-      logger.warn("Proces failed image data cannot be empty");
-      throw new ResponseEror("Image data cannot be empty", 400);
-    }
-    const imageFromDB = findProduct.Images;
     const pathLocation = path.join(process.cwd(), "images");
+    const imagesData = req.files;
 
-    // Delete old image
-    logger.info("Delete old image proces from disk started");
-    for (const oldImages of imageFromDB) {
+    for (const oldImages of findProduct.Images) {
       const oldImagesName = path.basename(oldImages.imageUrl);
-      const oldImagesLocation = path.join(pathLocation, oldImagesName);
+      const oldImageLocation = path.join(pathLocation, oldImagesName);
 
-      await fs.promises.unlink(oldImagesLocation);
+      try {
+        await fs.promises.unlink(oldImageLocation);
+      } catch (err) {
+        logger.warn(`eror unlink images: ${err.message}`);
+        throw new ResponseEror("Un Succesfully Update Images", 500);
+      }
 
       await prisma.images.delete({
         where: {
@@ -89,49 +92,39 @@ async function patchProduct(req) {
       });
     }
 
-    // Create new image
-    logger.info("Create new image proces started");
-    for (const newImage of req.files) {
-      const imagesMetaData = urlGenerator(req, "images", newImage.originalname);
-      const newImageName = imagesMetaData.imageName;
-      const newImageUrl = imagesMetaData.imageUrl;
+    for (const newImages of imagesData) {
+      const metaData = urlGenerator(req, "images", newImages.originalname);
 
-      const newImagesLocation = path.join(folderLocation, newImageName);
-
-      await fs.promises.writeFile(newImagesLocation);
+      const newImagesLocation = path.join(pathLocation, metaData.imageName);
+      try {
+        await fs.promises.writeFile(newImagesLocation, newImages.buffer);
+      } catch (err) {
+        logger.warn(`eror writefile images: ${err.message}`);
+        throw new ResponseEror("Un Succesfullt Update Images", 500);
+      }
 
       await prisma.images.create({
         data: {
-          productId: productId,
-          imageUrl: newImageUrl,
+          productId: findProduct.id,
+          imageUrl: metaData.imageUrl,
         },
       });
     }
   }
 
   if (Object.keys(body).length === 0) {
-    logger.info("Body request not found");
-    return await prisma.product.findFirst({
-      where: {
-        id: productId,
-      },
-      include: {
-        Images: true,
-      },
-    });
+    logger.info(`Body Data Not Found`);
+    return await prisma.product.findFirst({ where: { id: findProduct.id } });
   }
 
   const patchProduct = await prisma.product.update({
     where: {
-      id: productId,
+      id: findProduct.id,
     },
-    data: body,
-    include: {
-      Images: true,
-    },
+    data: body
   });
 
   return patchProduct;
-};
+}
 
 export default patchProduct;
