@@ -4,6 +4,9 @@ import prisma from "../../application/prisma-client-app.js";
 import ResponseEror from "../../eror/response-eror.js";
 
 async function resetPassword(req) {
+
+  logger.info("Proces started POST: /api/v1/auth/password/reset");
+
   const token = req.query.token;
   const { password } = req.body;
 
@@ -45,6 +48,7 @@ async function resetPassword(req) {
       password: hashNewPassword,
     },
   });
+  logger.info(`Succesfullt update password: ${updatePassword.id}`);
 
   return {
     accountId: accountId,

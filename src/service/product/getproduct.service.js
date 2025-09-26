@@ -3,9 +3,14 @@ import prisma from "../../application/prisma-client-app.js";
 import ResponseEror from "../../eror/response-eror.js";
 
 async function getProduct(req) {
-  logger.info("Proces started /api/v1/product");
+  logger.info("Proces started GET: api/v1/product?productName=");
 
   const productName = req.query.productName;
+  if (!productName) {
+    logger.warn("Proces failed: missing required query param 'productName'");
+    throw new ResponseEror("Missing required query param", 400);
+  }
+
   let selectProduct;
 
   if (productName) {
@@ -30,9 +35,9 @@ async function getProduct(req) {
     throw new ResponseEror("Product not found", 404);
   }
 
-  logger.info(`Succesfully get data: ${JSON.stringify(selectProduct)}`);
+  logger.info(`Succesfully get data count: ${selectProduct.length}`);
 
   return selectProduct;
-};
+}
 
 export default getProduct;

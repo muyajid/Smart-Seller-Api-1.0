@@ -10,10 +10,10 @@ dotenv.config();
 async function login(req) {
   const { username, password } = req.body;
 
-  logger.info(`Process started /api/v1/auth/login`);
+  logger.info(`Proces started POST: /api/v1/auth/login`);
 
   if (!username || !password) {
-    logger.warn(`Failed proces: missing required body fields`);
+    logger.warn(`Failed proces: require body inco`);
     throw new ResponseEror("Bad request: missing required body fields", 400);
   }
 
@@ -41,7 +41,7 @@ async function login(req) {
   const secretKey = process.env.JWT_SECRET;
 
   const jwtToken = JWT.sign(payload, secretKey, { expiresIn: "1h" });
-  logger.info(`JWT sign proces done ${jwtToken}`);
+  logger.info(`JWT sign proces done ${payload.id}`);
 
   return {
     id: findAccount.id,

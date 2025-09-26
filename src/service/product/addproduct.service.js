@@ -6,27 +6,30 @@ import path from "path";
 import fs, { existsSync } from "fs";
 
 async function addProduct(req) {
-  logger.info("Proces started /api/v1/product/add");
+  logger.info("Proces started POST: /api/v1/product");
 
   const { productName, description, price, stock, brand, kategory, sku } =
     req.body;
 
   if (!productName || !price || !stock) {
-    logger.warn("Proces failed missing required body fields");
-    throw new ResponseEror("Missing required body fields", 400);
+    logger.warn("Proces failed: required body fields incomplete");
+    throw new ResponseEror(
+      "Required body fields incomplete 'productName, price, stock'",
+      400
+    );
   }
 
   const priceToFloat = parseFloat(price);
   const stockToInt = parseInt(stock);
 
-  if (isNaN(priceToFloat) || isNaN(stockToInt)) {
-    logger.warn("Proces failed price adn stok must be number");
-    throw new ResponseEror("Price and stock must be number", 400);
-  }
+  if (priceToFloat <= 1000 || isNaN(priceToFloat)) {
+    logger.warn("Proces failed: price must be number > 1000");
 
-  if (priceToFloat <= 1000 || stockToInt <= 0) {
-    logger.warn("Proces failed price cannot be 1000 and stock cannot be 0");
-    throw new ResponseEror("Price cannot be 1000 and stock cannot be 0", 400);
+    throw new ResponseEror("Price must be a number greater than 1000", 400);
+  } else if (stockToInt <= 0 || isNaN(stockToInt)) {
+    logger.warn("Proces failed: stock must be number > 0");
+
+    throw new ResponseEror("Stock must be a number greater than 0", 400);
   }
 
   const createNewProduct = await prisma.product.create({
@@ -42,13 +45,13 @@ async function addProduct(req) {
   });
 
   const productId = createNewProduct.id;
-  logger.info(`Succesfully create new product product id: ${productId}`);
+  logger.info(`Product added succesfuly to db: ${productId}`);
 
   const imagesData = req.files;
-  logger.info(`Images file length: ${imagesData.length}`);
+  logger.info(`Image data count: ${imagesData.length}`);
 
   if (imagesData.length <= 0) {
-    logger.warn("Proces failed missing images data");
+    logger.warn("Proces failed: missing images data");
     throw new ResponseEror("Missing images data", 400);
   }
   const imagesUrlData = [];
@@ -56,31 +59,42 @@ async function addProduct(req) {
   const folderLocation = path.join(process.cwd(), "images");
   if (!existsSync(folderLocation)) {
     fs.mkdirSync(folderLocation, { recursive: true });
-    logger.info(`Images folder succesfullt created`);
+    logger.info(`Path for saving images created succesfully ${folderLocation}`);
   }
 
   for (const images of imagesData) {
-    const createImageMetaData = urlGenerator(
-      req,
-      "images",
-      images.originalname
-    );
-    const imageUrl = createImageMetaData.imageUrl;
-    const imageName = createImageMetaData.imageName;
+    const imagesMetaData = urlGenerator(req, "images", images.originalname);
 
     await prisma.images.create({
       data: {
         productId: productId,
-        imageUrl: imageUrl,
+        imageUrl: imagesMetaData.imageUrl,
       },
     });
+    logger.info(`New image URL writen to db: ${imagesMetaData.imageUrl}`);
 
     const imageLocation = path.join(folderLocation, imageName);
     await fs.promises.writeFile(imageLocation, images.buffer);
 
+    try {
+      const imageLocation = path.join(folderLocation, imagesMetaData.imageName);
+      await fs.promises.writeFile(imageLocation, images.buffer);
+
+      logger.info(`New image writen to disk: ${imagesMetaData.imageName}`);
+    } catch (err) {
+      logger.warn(`Failed to write image to disk ${imagesMetaData.imageName}`);
+
+      await prisma.product.delete({
+        where: { id: productId },
+        include: { Images: true },
+      });
+
+      throw new ResponseEror("Failed to add product", 500);
+    }
+
     imagesUrlData.push(imageUrl);
   }
-  logger.info("Succesfully add product images data: " + imagesUrlData);
+  logger.info(`Succesfuly add product ${productId}`);
 
   return {
     productData: createNewProduct,

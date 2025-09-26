@@ -3,6 +3,9 @@ import prisma from "../../application/prisma-client-app.js";
 import ResponseEror from "../../eror/response-eror.js";
 
 async function verifyToken(req) {
+
+  logger.info("Proces started GET: /api/v1/auth/token/verify");
+
   const token = req.query.token;
   if (!token) {
     logger.warn(`Proces failed: missing required query param`);
@@ -34,6 +37,7 @@ async function verifyToken(req) {
       verified: true,
     },
   });
+  logger.info(`Token has ben verified succesfuly ${updateStatusToken.verified}`);
 
   return {
     status: updateStatusToken.verified,

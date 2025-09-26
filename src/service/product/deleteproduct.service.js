@@ -5,12 +5,11 @@ import path from "path";
 import fs from "fs";
 
 async function deleteProduct(req) {
-
-  logger.info("Proces started api/v1/product/delete");
+  logger.info("Proces started DELETE: /api/v1/product?id=");
   const productId = req.query.id;
 
   if (!productId) {
-    logger.warn("Proces failed missing required query param");
+    logger.warn("Proces failed: missing required query param");
     throw new ResponseEror("Missing required query param", 400);
   }
 
@@ -20,25 +19,34 @@ async function deleteProduct(req) {
   });
 
   if (!findProduct) {
-    logger.warn("Proces failed product not found");
+    logger.warn("Proces failed: product not found");
     throw new ResponseEror("Product Not Found", 404);
   }
+  logger.info(`Product found ${findProduct.productName} (${findProduct.id})`);
 
-  const remove = await prisma.product.delete({
-    where: { id: productId },
-    include: { Images: true },
-  });
+  let remove;
+  try {
+    remove = await prisma.product.delete({
+      where: { id: findProduct.id },
+      include: { Images: true },
+    });
+    logger.info(`Succesfuly remove product record in db: ${remove.id}`);
 
-  const pathLocation = path.join(process.cwd(), "images");
-  for (const images of remove.Images) {
-    const fileName = path.basename(images.imageUrl);
-    const filePath = path.join(pathLocation, fileName);
+    const pathLocation = path.join(process.cwd(), "images");
+    for (const imageFromDisk of remove.Images) {
+      const imagesName = path.basename(imageFromDisk.imageUrl);
+      const imagesPath = path.join(pathLocation, imagesName);
 
-    await fs.promises.unlink(filePath);
+      await fs.promises.unlink(imagesPath);
+      logger.info(`Image deleted from disk ${imagesName}`);
+    }
+  } catch (error) {
+    logger.warn(`Failed remove image from disk ${error.message}`);
+    throw new ResponseEror(`Failed to remove product.`, 500);
   }
 
   logger.info(`Product removed succesfully productId: ${remove.id}`);
   return remove;
-};
+}
 
 export default deleteProduct;
