@@ -6,10 +6,6 @@ async function getProduct(req) {
   logger.info("Proces started GET: api/v1/product?productName=");
 
   const productName = req.query.productName;
-  if (!productName) {
-    logger.warn("Proces failed: missing required query param 'productName'");
-    throw new ResponseEror("Missing required query param", 400);
-  }
 
   let selectProduct;
 

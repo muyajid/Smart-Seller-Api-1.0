@@ -13,16 +13,15 @@ async function login(req) {
   logger.info(`Proces started POST: /api/v1/auth/login`);
 
   if (!username || !password) {
-    logger.warn(`Failed proces: require body inco`);
+    logger.warn(`Failed proces: require body incomplete`);
     throw new ResponseEror("Bad request: missing required body fields", 400);
   }
 
   const findAccount = await prisma.account.findFirst({
     where: { username: username },
   });
-  logger.info(`Account from DB: ${JSON.stringify(findAccount)}`);
 
-  if (findAccount === null) {
+  if (!findAccount) {
     logger.info(`Failed proces: account not found`);
     throw new ResponseEror("Failed proces: account not found", 404);
   }
