@@ -14,15 +14,15 @@ publicRouter.post("/api/v1/auth/register", express.json(), registerController);
 publicRouter.post("/api/v1/auth/login", express.json(), loginController);
 
 publicRouter.post(
-  "/api/v1/auth/forgot-password",
+  "/api/v1/auth/password/forgot",
   express.json(),
   forgotPasswordController
 );
 
-publicRouter.get("/api/v1/auth/verify-token", verifyTokenController);
+publicRouter.get("/api/v1/auth/token/verify", verifyTokenController);
 
 publicRouter.put(
-  "/api/v1/auth/reset-password",
+  "/api/v1/auth/password/reset",
   express.json(),
   resetPasswordController
 );

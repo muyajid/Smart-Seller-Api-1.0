@@ -6,7 +6,7 @@ import hash256 from "../../utility/sha-256-utility.js";
 
 async function forgotPassword(req) {
   const { account } = req.body;
-  logger.info(`Process started: /api/v1/auth/forgot-password`);
+  logger.info(`Process started POST: /api/v1/auth/password/forgot`);
 
   if (!account) {
     logger.warn(`Failed proces: missing required body fields`);

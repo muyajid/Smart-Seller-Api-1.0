@@ -7,7 +7,7 @@ dotenv.config();
 async function register(req) {
   const { username, email, password } = req.body;
 
-  logger.info(`Process Started: api/v1/auth/register`);
+  logger.info(`Proces started POST: /api/v1/auth/register`);
 
   if (!username || !email || !password) {
     logger.warn("Failed proces: missing require body fields");
@@ -42,6 +42,7 @@ async function register(req) {
       password: hashPassword,
     },
   });
+  logger.info(`Succesfully create new account: ${createNewAccount.id}`);
 
   return createNewAccount;
 };
