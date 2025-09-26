@@ -11,13 +11,13 @@ async function addProduct(req) {
   const { productName, description, price, stock, brand, kategory, sku } =
     req.body;
 
-  if (!productName || !price || !stock) {
+  if (!productName || !price || !stock || productName.trim() === "") {
     logger.warn("Proces failed: required body fields incomplete");
     throw new ResponseEror(
       "Required body fields incomplete 'productName, price, stock'",
       400
     );
-  }
+  };
 
   const priceToFloat = parseFloat(price);
   const stockToInt = parseInt(stock);
@@ -63,20 +63,17 @@ async function addProduct(req) {
   }
 
   for (const images of imagesData) {
-    const imagesMetaData = urlGenerator(req, "images", images.originalname);
-
-    await prisma.images.create({
-      data: {
-        productId: productId,
-        imageUrl: imagesMetaData.imageUrl,
-      },
-    });
-    logger.info(`New image URL writen to db: ${imagesMetaData.imageUrl}`);
-
-    const imageLocation = path.join(folderLocation, imageName);
-    await fs.promises.writeFile(imageLocation, images.buffer);
-
     try {
+      const imagesMetaData = urlGenerator(req, "images", images.originalname);
+      await prisma.images.create({
+        data: {
+          productId: productId,
+          imageUrl: imagesMetaData.imageUrl,
+        },
+      });
+      logger.info(`New image URL writen to db: ${imagesMetaData.imageUrl}`);
+      imagesUrlData.push(imagesMetaData.imageUrl);
+
       const imageLocation = path.join(folderLocation, imagesMetaData.imageName);
       await fs.promises.writeFile(imageLocation, images.buffer);
 
@@ -91,8 +88,6 @@ async function addProduct(req) {
 
       throw new ResponseEror("Failed to add product", 500);
     }
-
-    imagesUrlData.push(imageUrl);
   }
   logger.info(`Succesfuly add product ${productId}`);
 

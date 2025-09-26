@@ -2,6 +2,7 @@ import argon2 from "argon2";
 import logger from "../../application/looger-app.js";
 import dotenv from "dotenv";
 import prisma from "../../application/prisma-client-app.js";
+import ResponseEror from "../../eror/response-eror.js";
 dotenv.config();
 
 async function register(req) {

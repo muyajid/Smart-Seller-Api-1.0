@@ -51,7 +51,7 @@ async function forgotPassword(req) {
 
   const userMails = findAccount.email;
   const sendTokenToMail = await sendMail(
-    `Token URL Reset Password http://localhost:8080/api/v1/auth/verify-token?token=${encodeURIComponent(
+    `Token URL Reset Password http://localhost:8080/api/v1/auth/token/verify?token=${encodeURIComponent(
       hashToken
     )}`,
     userMails
