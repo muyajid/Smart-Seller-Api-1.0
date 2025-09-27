@@ -85,6 +85,7 @@ async function addProduct(req) {
         where: { id: productId },
         include: { Images: true },
       });
+      logger.info("CATCH: Product data removed from db");
 
       throw new ResponseEror("Failed to add product", 500);
     }

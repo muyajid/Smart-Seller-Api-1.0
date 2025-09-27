@@ -19,7 +19,7 @@ route.post(
 
 route.use("/images", express.static("images"));
 
-route.get("/api/v1/product", jwtAuth, getProductController);
+route.get("/api/v1/product", getProductController);
 
 route.delete("/api/v1/product/", deleteProductController);
 

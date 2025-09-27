@@ -46,6 +46,7 @@ async function forgotPasswordController(req, res, next) {
       message: `Verification URL token already send to your email ${results.userMails}`,
       data: {
         accountId: results.accountId,
+        username: results.username,
         token: results.token,
         expiredAt: results.expiredAt,
         userMails: results.userMails,

@@ -26,7 +26,7 @@ async function forgotPassword(req) {
     });
   }
 
-  if (findAccount === null) {
+  if (!findAccount) {
     logger.info(`Failed proces: account not found`);
     throw new ResponseEror("Failed proces: account not found", 404);
   }
@@ -47,6 +47,7 @@ async function forgotPassword(req) {
       token: hashToken,
       expired: expiredAt,
     },
+    include: {account: true},
   });
 
   const userMails = findAccount.email;
@@ -60,6 +61,7 @@ async function forgotPassword(req) {
 
   return {
     accountId: insertVerifyTokenData.accountId,
+    username: insertVerifyTokenData.account.username,
     token: hashToken,
     expiredAt: expiredAt,
     userMails: userMails,
