@@ -10,7 +10,7 @@ async function getProduct(req) {
   let selectProduct;
 
   if (productName) {
-    selectProduct = await prisma.product.findFirst({
+    selectProduct = await prisma.product.findMany({
       where: {
         productName: {
           contains: productName,
