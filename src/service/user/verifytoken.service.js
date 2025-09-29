@@ -3,7 +3,6 @@ import prisma from "../../application/prisma-client-app.js";
 import ResponseEror from "../../eror/response-eror.js";
 
 async function verifyToken(req) {
-
   logger.info("Proces started GET: /api/v1/auth/token/verify");
 
   const token = req.query.token;
@@ -16,7 +15,7 @@ async function verifyToken(req) {
     where: { token: token },
   });
 
-  if (findToken === null) {
+  if (!findToken) {
     logger.warn(`Proces failed: token not found `);
     throw new ResponseEror("Proces failed: token not found", 404);
   }
@@ -37,14 +36,16 @@ async function verifyToken(req) {
       verified: true,
     },
   });
-  logger.info(`Token has ben verified succesfuly ${updateStatusToken.verified}`);
+  logger.info(
+    `Token has ben verified succesfuly ${updateStatusToken.verified}`
+  );
 
   return {
     status: updateStatusToken.verified,
-    url: `http://localhost:8080/api/v1/auth/reset-password?token=${encodeURIComponent(
-      tokenFromDb
-    )}`,
+    url: `${req.protocol}://${req.get(
+      "host"
+    )}/api/v1/auth/password/reset?token=${encodeURIComponent(tokenFromDb)}`,
   };
-};
+}
 
 export default verifyToken;

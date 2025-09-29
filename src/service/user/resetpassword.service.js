@@ -21,14 +21,13 @@ async function resetPassword(req) {
     where: { token: token },
   });
 
-  logger.info(`Token from DB ${JSON.stringify(findToken)}`);
-
-  if (findToken === null) {
+  if (!findToken) {
     throw new ResponseEror(`Proces failed: token not found`, 404);
   }
+  logger.info(`Token from DB: ${findToken.token}`);
 
   const tokenStatus = findToken.verified;
-  logger.info(`Token status: ${findToken.verified}`);
+  logger.info(`Verified token status: (${findToken.verified})`);
 
   if (tokenStatus === false) {
     logger.warn(`Failed process: token un verified status ${tokenStatus}`);
@@ -36,7 +35,6 @@ async function resetPassword(req) {
   }
 
   const hashNewPassword = await argon2.hash(password);
-  logger.info(`New password has been hashed results: ${hashNewPassword}`);
 
   const accountId = findToken.accountId;
   logger.info(`Id account to update password: ${accountId}`);
@@ -47,7 +45,7 @@ async function resetPassword(req) {
       password: hashNewPassword,
     },
   });
-  logger.info(`Succesfullt update password: ${updatePassword.id}`);
+  logger.info(`Succesfully update password: ${updatePassword.username}`);
 
   return {
     accountId: accountId,
